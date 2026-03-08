@@ -1,6 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,6 +21,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Clout - Premium Discord Bot",
   description: "A self-hosted Discord bot featuring karma tracking, economy systems, and a beautiful web dashboard. Built for communities that value quality.",
+  icons: {
+    icon: "/logo.svg",
+  },
   keywords: ["discord", "bot", "self-hosted", "karma", "economy", "dashboard", "community"],
   authors: [{ name: "Clout" }],
   openGraph: {
@@ -43,6 +52,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <Toaster position="bottom-right" richColors />
         </ThemeProvider>
       </body>
     </html>

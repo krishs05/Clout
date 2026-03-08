@@ -1,2 +1,13 @@
 node_modules
-node_modules
+/apps/web/.next
+/.playwright-mcp
+/.turbo
+**/.turbo
+**/dist
+.env
+*.env
+!*.env.example
+*.log
+.codex-dev.log
+dev.err
+dev.log

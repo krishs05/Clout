@@ -1,8 +1,12 @@
 import { Router, Response } from 'express';
+import fetch from 'node-fetch';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
 import { prisma } from '@clout/database';
 import { z } from 'zod';
+import { DISCORD_API_BASE } from '@clout/shared';
+
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 
 const router = Router();
 
@@ -24,6 +28,9 @@ const serverSettingsSchema = z.object({
   antiLinkEnabled: z.boolean().optional(),
   antiInvitesEnabled: z.boolean().optional(),
   modLogChannelId: z.string().nullable().optional(),
+  modRoleIdsWarn: z.array(z.string()).nullable().optional(),
+  modRoleIdsKick: z.array(z.string()).nullable().optional(),
+  modRoleIdsBan: z.array(z.string()).nullable().optional(),
 });
 
 const embedConfigSchema = z.object({
@@ -46,6 +53,30 @@ const customCommandSchema = z.object({
 // Get user's servers
 router.get('/', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  const rawCache = user && 'guildsCache' in user ? (user as { guildsCache?: unknown }).guildsCache : undefined;
+  const guildIds = Array.isArray(rawCache)
+    ? (rawCache as { id?: string }[]).map(g => g?.id).filter(Boolean) as string[]
+    : [];
+
+  if (guildIds.length > 0) {
+    const serversInUserGuilds = await prisma.server.findMany({
+      where: { discordId: { in: guildIds } },
+      select: { id: true },
+    });
+    for (const server of serversInUserGuilds) {
+      await prisma.serverMember.upsert({
+        where: {
+          serverId_userId: { serverId: server.id, userId },
+        },
+        update: {},
+        create: { serverId: server.id, userId },
+      });
+    }
+  }
 
   // Get servers where user is a member
   const memberships = await prisma.serverMember.findMany({
@@ -122,6 +153,42 @@ router.patch('/:id/settings', authenticate, asyncHandler(async (req: AuthRequest
   res.json({
     success: true,
     data: settings,
+  });
+}));
+
+// Get moderation events (warn, kick, ban)
+router.get('/:id/moderation/events', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const server = await prisma.server.findUnique({ where: { discordId: id } });
+  if (!server) throw new AppError(404, 'Server not found');
+
+  const events = await (prisma as any).moderationEvent.findMany({
+    where: { serverId: server.id },
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  });
+
+  res.json({ success: true, data: events });
+}));
+
+// Get Discord guild roles (live from Discord API)
+router.get('/:id/roles', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { id: guildId } = req.params;
+  if (!DISCORD_BOT_TOKEN) throw new AppError(503, 'Bot not configured');
+  const server = await prisma.server.findUnique({ where: { discordId: guildId } });
+  if (!server) throw new AppError(404, 'Server not found');
+
+  const response = await fetch(`${DISCORD_API_BASE}/guilds/${guildId}/roles`, {
+    headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new AppError(response.status === 404 ? 404 : 502, `Discord API: ${text || response.statusText}`);
+  }
+  const roles = (await response.json()) as Array<{ id: string; name: string; position: number }>;
+  res.json({
+    success: true,
+    data: roles.filter((r) => !r.name.startsWith('@')).map((r) => ({ id: r.id, name: r.name, position: r.position })),
   });
 }));
 
@@ -294,6 +361,53 @@ router.delete('/:id/commands/:commandId', authenticate, asyncHandler(async (req:
     success: true,
     message: 'Command deleted',
   });
+}));
+
+// Get command permission configs for server
+router.get('/:id/command-config', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const server = await prisma.server.findUnique({ where: { discordId: id } });
+  if (!server) throw new AppError(404, 'Server not found');
+  const configs = await (prisma as any).serverCommandConfig.findMany({
+    where: { serverId: server.id },
+  });
+  res.json({
+    success: true,
+    data: configs.map((c: { commandName: string; allowedRoleIds: unknown; allowedUserIds: unknown }) => ({
+      commandName: c.commandName,
+      allowedRoleIds: (c.allowedRoleIds as string[]) ?? [],
+      allowedUserIds: (c.allowedUserIds as string[]) ?? [],
+    })),
+  });
+}));
+
+// Update command permission config for server
+router.patch('/:id/command-config', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const body = z.object({
+    commandName: z.string().min(1).max(32),
+    allowedRoleIds: z.array(z.string()).optional(),
+    allowedUserIds: z.array(z.string()).optional(),
+  }).parse(req.body);
+  const server = await prisma.server.findUnique({ where: { discordId: id } });
+  if (!server) throw new AppError(404, 'Server not found');
+  const config = await (prisma as any).serverCommandConfig.upsert({
+    where: {
+      serverId_commandName: { serverId: server.id, commandName: body.commandName },
+    },
+    update: {
+      allowedRoleIds: body.allowedRoleIds ?? undefined,
+      allowedUserIds: body.allowedUserIds ?? undefined,
+      updatedAt: new Date(),
+    },
+    create: {
+      serverId: server.id,
+      commandName: body.commandName,
+      allowedRoleIds: body.allowedRoleIds ?? [],
+      allowedUserIds: body.allowedUserIds ?? [],
+    },
+  });
+  res.json({ success: true, data: config });
 }));
 
 // Get economy settings

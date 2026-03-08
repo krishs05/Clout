@@ -40,59 +40,115 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* Clean Design System - Solid Colors Only */
+/* Clean Design System */
 :root {
   --radius: 0.75rem;
-  
-  /* Background - Deep charcoal */
-  --background: #0a0a0b;
-  --foreground: #fafafa;
-  
-  /* Cards - Elevated dark surface */
-  --card: #141416;
-  --card-foreground: #fafafa;
-  
+
+  /* Background - Light Surface */
+  --background: #fafafa;
+  --foreground: #0a0a0b;
+
+  /* Cards - Light surface */
+  --card: #ffffff;
+  --card-foreground: #0a0a0b;
+
   /* Popovers */
-  --popover: #141416;
-  --popover-foreground: #fafafa;
-  
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0b;
+
   /* Primary - Clean indigo */
   --primary: #6366f1;
   --primary-foreground: #ffffff;
-  
+
   /* Secondary - Subtle surface */
-  --secondary: #1e1e22;
-  --secondary-foreground: #e4e4e7;
-  
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+
   /* Muted - Neutral gray */
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
-  
-  /* Accent - Sky blue */
-  --accent: #0ea5e9;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+
+  /* Accent - Brand indigo */
+  --accent: #6366f1;
   --accent-foreground: #ffffff;
-  
+
   /* Destructive - Clean red */
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  
+
+  /* Borders - Subtle */
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #6366f1;
+
+  /* Charts */
+  --chart-1: #6366f1;
+  --chart-2: #8b5cf6;
+  --chart-3: #a78bfa;
+  --chart-4: #4f46e5;
+  --chart-5: #c4b5fd;
+
+  /* Sidebar */
+  --sidebar: #fafafa;
+  --sidebar-foreground: #0a0a0b;
+  --sidebar-primary: #6366f1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #6366f1;
+}
+
+.dark {
+  /* Background - Deep charcoal */
+  --background: #0a0a0b;
+  --foreground: #fafafa;
+
+  /* Cards - Elevated dark surface */
+  --card: #141416;
+  --card-foreground: #fafafa;
+
+  /* Popovers */
+  --popover: #141416;
+  --popover-foreground: #fafafa;
+
+  /* Primary - Clean indigo */
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+
+  /* Secondary - Subtle surface */
+  --secondary: #1e1e22;
+  --secondary-foreground: #e4e4e7;
+
+  /* Muted - Neutral gray */
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+
+  /* Accent - Brand indigo */
+  --accent: #6366f1;
+  --accent-foreground: #ffffff;
+
+  /* Destructive - Clean red */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
   /* Borders - Subtle */
   --border: #27272a;
   --input: #27272a;
   --ring: #6366f1;
-  
+
   /* Charts */
   --chart-1: #6366f1;
   --chart-2: #8b5cf6;
-  --chart-3: #0ea5e9;
-  --chart-4: #10b981;
-  --chart-5: #f59e0b;
-  
+  --chart-3: #a78bfa;
+  --chart-4: #4f46e5;
+  --chart-5: #c4b5fd;
+
   /* Sidebar */
   --sidebar: #0a0a0b;
   --sidebar-foreground: #fafafa;
   --sidebar-primary: #6366f1;
-  --sidebar-foreground: #ffffff;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1e1e22;
   --sidebar-accent-foreground: #e4e4e7;
   --sidebar-border: #27272a;
@@ -115,12 +171,16 @@
 @layer utilities {
   /* Glass effect - subtle */
   .glass {
-    @apply bg-white/[0.02] backdrop-blur-xl border border-white/[0.05];
+    background-color: rgba(20, 20, 22, 0.82);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(39, 39, 42, 0.9);
   }
   
   /* Stronger glass for navigation */
   .glass-strong {
-    @apply bg-[#0a0a0b]/90 backdrop-blur-2xl border-b border-white/[0.05];
+    background-color: rgba(10, 10, 11, 0.94);
+    backdrop-filter: blur(32px);
+    border-bottom: 1px solid rgba(39, 39, 42, 0.95);
   }
   
   /* Clean text highlight - solid indigo */
@@ -130,11 +190,11 @@
   
   /* Subtle glow effects */
   .glow {
-    box-shadow: 0 0 40px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 40px rgba(99, 102, 241, 0.12);
   }
   
   .glow-strong {
-    box-shadow: 0 0 60px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 0 60px rgba(139, 92, 246, 0.18);
   }
   
   /* Inner highlight for cards */
@@ -147,14 +207,15 @@
     @apply transition-all duration-300 ease-out;
   }
   .card-hover:hover {
-    @apply bg-white/[0.03] border-white/[0.08];
+    background-color: rgba(20, 20, 22, 0.92);
+    border-color: rgba(99, 102, 241, 0.2);
     transform: translateY(-2px);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   }
   
   /* Subtle surface highlight */
   .surface-highlight {
-    background-color: rgba(99, 102, 241, 0.03);
+    background-color: rgba(99, 102, 241, 0.06);
   }
   
   /* Clean background pattern */

@@ -8,16 +8,18 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  discordId   String   @unique
-  username    String
-  avatar      String?
-  goodDeeds   Int      @default(0)
-  badDeeds    Int      @default(0)
-  balance     Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  lastDailyAt DateTime?
+  id                   String    @id @default(uuid())
+  discordId            String    @unique
+  username             String
+  avatar               String?
+  goodDeeds            Int       @default(0)
+  badDeeds             Int       @default(0)
+  balance              Int       @default(0)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  lastDailyAt          DateTime?
+  guildsCache          Json?
+  guildsCacheUpdatedAt DateTime?
 
   // Relations
   transactions  Transaction[]
@@ -84,6 +86,9 @@ model ServerSettings {
   antiLinkEnabled      Boolean  @default(false)
   antiInvitesEnabled   Boolean  @default(false)
   modLogChannelId      String?
+  modRoleIdsWarn       Json?
+  modRoleIdsKick       Json?
+  modRoleIdsBan        Json?
   updatedAt            DateTime @updatedAt
 
   // Relations
@@ -199,4 +204,33 @@ model BotState {
   updatedAt DateTime @updatedAt
 
   @@map("bot_state")
+}
+
+model ModerationEvent {
+  id                String   @id @default(uuid())
+  serverId          String
+  action            String
+  targetUserId      String
+  targetUsername    String
+  moderatorUserId   String
+  moderatorUsername String
+  reason            String?
+  createdAt         DateTime @default(now())
+
+  @@index([serverId])
+  @@index([createdAt])
+  @@map("moderation_events")
+}
+
+model ServerCommandConfig {
+  id             String   @id @default(uuid())
+  serverId       String
+  commandName    String
+  allowedRoleIds Json?
+  allowedUserIds Json?
+  updatedAt      DateTime @updatedAt
+
+  @@unique([serverId, commandName])
+  @@index([serverId])
+  @@map("server_command_configs")
 }

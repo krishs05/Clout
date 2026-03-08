@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { prisma } from '@clout/database';
-import { botState } from './routes/bot';
+import { getBotState } from './routes/bot';
 
 interface ExtendedWebSocket extends WebSocket {
   isAlive: boolean;
@@ -22,34 +22,50 @@ export function setupWebSocket(wss: WebSocketServer) {
     ws.on('pong', () => heartbeat(ws));
 
     ws.on('message', async (data) => {
+      let message: { type?: string; userId?: string };
       try {
-        const message = JSON.parse(data.toString());
-
+        const raw = data.toString();
+        if (!raw || typeof raw !== 'string') {
+          ws.send(JSON.stringify({ type: 'error', message: 'Invalid message' }));
+          return;
+        }
+        message = JSON.parse(raw);
+      } catch {
+        ws.send(JSON.stringify({ type: 'error', message: 'Invalid message' }));
+        return;
+      }
+      if (!message || typeof message.type !== 'string') {
+        ws.send(JSON.stringify({ type: 'error', message: 'Invalid message' }));
+        return;
+      }
+      try {
         switch (message.type) {
           case 'auth':
-            // Authenticate connection
-            ws.userId = message.userId;
+            ws.userId = typeof message.userId === 'string' ? message.userId : undefined;
             ws.send(JSON.stringify({ type: 'auth', success: true }));
             break;
 
-          case 'subscribe_bot_status':
-            // Subscribe to bot status updates
+          case 'subscribe_bot_status': {
+            const currentState = await getBotState();
             ws.send(JSON.stringify({
               type: 'bot_status',
-              data: botState,
+              data: currentState,
             }));
             break;
+          }
 
-          case 'get_stats':
+          case 'get_stats': {
             const stats = await getStats();
             ws.send(JSON.stringify({ type: 'stats', data: stats }));
             break;
+          }
 
           default:
             ws.send(JSON.stringify({ type: 'error', message: 'Unknown message type' }));
         }
-      } catch (error) {
-        ws.send(JSON.stringify({ type: 'error', message: 'Invalid message' }));
+      } catch (err) {
+        console.error('WebSocket handler error:', err);
+        ws.send(JSON.stringify({ type: 'error', message: 'Server error' }));
       }
     });
 

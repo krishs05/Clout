@@ -25,12 +25,15 @@ router.get('/discord', (_req, res) => {
   res.json({ url });
 });
 
-// OAuth2 callback
+// OAuth2 callback (Discord redirects here with ?code=... or ?error=...)
 router.get('/callback', asyncHandler(async (req, res) => {
-  const { code } = req.query;
+  const { code, error: discordError, error_description: errorDescription } = req.query;
 
-  if (!code || typeof code !== 'string') {
-    return res.redirect(`${FRONTEND_URL}/auth/error?message=Invalid code`);
+  if (discordError || typeof code !== 'string' || !code) {
+    const message = discordError === 'access_denied'
+      ? 'You denied access'
+      : (typeof errorDescription === 'string' ? errorDescription : 'Authentication failed');
+    return res.redirect(`${FRONTEND_URL}/auth/callback?error=auth_failed&message=${encodeURIComponent(message)}`);
   }
 
   // Exchange code for access token
@@ -49,7 +52,7 @@ router.get('/callback', asyncHandler(async (req, res) => {
   });
 
   if (!tokenResponse.ok) {
-    return res.redirect(`${FRONTEND_URL}/auth/error?message=Failed to authenticate`);
+    return res.redirect(`${FRONTEND_URL}/auth/callback?error=auth_failed&message=${encodeURIComponent('Failed to authenticate')}`);
   }
 
   const tokenData = await tokenResponse.json() as { access_token: string };
@@ -62,7 +65,7 @@ router.get('/callback', asyncHandler(async (req, res) => {
   });
 
   if (!userResponse.ok) {
-    return res.redirect(`${FRONTEND_URL}/auth/error?message=Failed to get user info`);
+    return res.redirect(`${FRONTEND_URL}/auth/callback?error=auth_failed&message=${encodeURIComponent('Failed to get user info')}`);
   }
 
   const discordUser = await userResponse.json() as {
@@ -108,6 +111,13 @@ router.get('/callback', asyncHandler(async (req, res) => {
     });
   }
 
+  if (user) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { guildsCache: guilds as object, guildsCacheUpdatedAt: new Date() },
+    });
+  }
+
   // Generate JWT
   const jwt = generateToken({
     id: user.id,
@@ -138,15 +148,27 @@ router.get('/me', asyncHandler(async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET) as { discordId: string };
     const user = await prisma.user.findUnique({
       where: { discordId: decoded.discordId },
+      select: {
+        id: true,
+        discordId: true,
+        username: true,
+        avatar: true,
+        balance: true,
+        goodDeeds: true,
+        badDeeds: true,
+        guildsCache: true,
+        guildsCacheUpdatedAt: true,
+      },
     });
 
     if (!user) {
       throw new AppError(404, 'User not found');
     }
 
+    const { guildsCache, ...rest } = user;
     res.json({
       success: true,
-      data: user,
+      data: { ...rest, guilds: guildsCache ?? [] },
     });
   } catch {
     throw new AppError(401, 'Invalid token');

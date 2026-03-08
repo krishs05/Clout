@@ -7,6 +7,7 @@ import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { LogoIcon } from "@/components/logo-3d";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { setCloutToken } from "@/lib/auth-client";
 
 export default function AuthCallback() {
   return (
@@ -37,9 +38,10 @@ function AuthCallbackContent() {
     const token = searchParams.get("token");
     const errorParam = searchParams.get("error");
     const errorDescription = searchParams.get("error_description");
+    const messageParam = searchParams.get("message");
 
-    if (errorParam) {
-      setError(errorDescription || "Authentication failed");
+    if (errorParam || messageParam) {
+      setError(messageParam || errorDescription || "Authentication failed");
       setTimeout(() => router.push("/?error=auth_failed"), 3000);
       return;
     }
@@ -50,11 +52,10 @@ function AuthCallbackContent() {
       return;
     }
 
-    // Store token and redirect
-    localStorage.setItem("clout_token", token);
+    setCloutToken(token);
     setStatus("Success! Redirecting to dashboard...");
-    
-    setTimeout(() => router.push("/dashboard"), 1000);
+    const t = setTimeout(() => router.push("/dashboard"), 1000);
+    return () => clearTimeout(t);
   }, [searchParams, router]);
 
   return (

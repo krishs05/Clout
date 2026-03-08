@@ -1,5 +1,6 @@
 import { Events, ChatInputCommandInteraction, Collection } from 'discord.js';
 import { CloutClient } from '../index';
+import { getControl } from '../utils/control';
 
 const COOLDOWN_SECONDS = 3;
 
@@ -7,6 +8,24 @@ export const name = Events.InteractionCreate;
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   if (!interaction.isChatInputCommand()) return;
+
+  const control = await getControl();
+  if (!control.shouldRun) {
+    console.log('[Clout] Stop requested from dashboard; disconnecting.');
+    try {
+      await interaction.reply({
+        content: 'This bot is currently stopped from the dashboard.',
+        ephemeral: true,
+      });
+    } catch {
+      // ignore
+    }
+    setImmediate(() => {
+      interaction.client.destroy();
+      process.exit(0);
+    });
+    return;
+  }
 
   const client = interaction.client as CloutClient;
   const command = client.commands.get(interaction.commandName);
