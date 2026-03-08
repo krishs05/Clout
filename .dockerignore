@@ -1,17 +1,54 @@
+# Dependencies
 node_modules
-npm-debug.log
+**/node_modules
+.pnp
+.pnp.js
+
+# Build outputs
 .next
-out
-dist
+**/.next
+**/dist
+**/out
+.turbo
+**/.turbo
+
+# Env and secrets
 .env
-.env.local
-.env.*.local
-coverage
+.env.*
+!.env.example
+
+# Git and IDE
 .git
 .gitignore
-README.md
+.cursor
+.vscode
+*.md
+!AGENTS.md
+
+# Logs and temp
+*.log
+npm-debug.log*
+.codex-dev.log
+dev.err
+dev.log
+
+# Test and misc
+coverage
+.nyc_output
+*.tsbuildinfo
+**/tsconfig.tsbuildinfo
+new-app
+playwright-report
+test-results
+.DS_Store
+
+# Docker
 Dockerfile*
 docker-compose*
-.vscode
-.idea
-*.log
+.dockerignore
+
+# Assets not needed for build (optional; remove if you need them)
+# *.png
+# *.jpg
+# *.glb
+# *.svg

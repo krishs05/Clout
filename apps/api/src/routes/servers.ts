@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import fetch from 'node-fetch';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
-import { prisma } from '@clout/database';
+import { prisma, Prisma } from '@clout/database';
 import { z } from 'zod';
 import { DISCORD_API_BASE } from '@clout/shared';
 
@@ -140,13 +140,19 @@ router.patch('/:id/settings', authenticate, asyncHandler(async (req: AuthRequest
     throw new AppError(404, 'Server not found');
   }
 
-  // Update or create settings
+  const jsonNull = Prisma.JsonNull;
+  const toSettingsData = (v: typeof validated) => ({
+    ...v,
+    modRoleIdsWarn: v.modRoleIdsWarn === null ? jsonNull : v.modRoleIdsWarn,
+    modRoleIdsKick: v.modRoleIdsKick === null ? jsonNull : v.modRoleIdsKick,
+    modRoleIdsBan: v.modRoleIdsBan === null ? jsonNull : v.modRoleIdsBan,
+  });
   const settings = await prisma.serverSettings.upsert({
     where: { serverId: server.id },
-    update: validated,
+    update: toSettingsData(validated),
     create: {
       serverId: server.id,
-      ...validated,
+      ...toSettingsData(validated),
     },
   });
 

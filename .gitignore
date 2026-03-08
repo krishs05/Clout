@@ -11,3 +11,5 @@ node_modules
 .codex-dev.log
 dev.err
 dev.log
+*.tsbuildinfo
+**/tsconfig.tsbuildinfo

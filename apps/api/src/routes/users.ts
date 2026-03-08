@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
 import { prisma } from '@clout/database';
@@ -6,7 +6,7 @@ import { prisma } from '@clout/database';
 const router = Router();
 
 // Get user profile
-router.get('/:id/profile', asyncHandler(async (req, res) => {
+router.get('/:id/profile', asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
 
   const user = await prisma.user.findUnique({
@@ -32,7 +32,7 @@ router.get('/:id/profile', asyncHandler(async (req, res) => {
 }));
 
 // Get user balance
-router.get('/:id/balance', asyncHandler(async (req, res) => {
+router.get('/:id/balance', asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
 
   const user = await prisma.user.findUnique({
@@ -51,7 +51,7 @@ router.get('/:id/balance', asyncHandler(async (req, res) => {
 }));
 
 // Get user transactions
-router.get('/:id/transactions', authenticate, asyncHandler(async (req: AuthRequest, res) => {
+router.get('/:id/transactions', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
 
   // Only allow users to see their own transactions

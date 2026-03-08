@@ -1,176 +1,90 @@
-# Clout - Advanced Discord Bot
+<p align="center">
+  <img src="resources/logo.svg" width="80" alt="Clout" />
+</p>
 
-A full-stack Discord bot with a premium web dashboard, featuring good/bad deeds tracking, economy system, mini-games, music, and AI chat.
+<h1 align="center">Clout</h1>
+<p align="center"><strong>Karma, economy &amp; community for Discord.</strong></p>
 
-![Clout Banner](https://via.placeholder.com/1200x400/0a0a0f/6366f1?text=Clout+Bot)
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#docker">Docker</a> •
+  <a href="#docs">Docs</a>
+</p>
 
-## ✨ Features
+---
 
-### 🤖 Bot Features
-- **Good/Bad Deeds System** — Users self-assign deeds, build karma reputation
-- **Economy System** — Daily rewards, coin transfers, balance tracking
-- **Mini-Games** — Trivia (50 coins), Rock Paper Scissors, Guess the Number
-- **Custom Commands** — Server admins create custom slash commands
-- **Music** — YouTube playback with queue management (coming soon)
-- **AI Chat** — Conversational AI in DMs (coming soon)
+Clout is a full-stack Discord bot with a web dashboard: good/bad deeds, coins, mini-games, custom commands, music, and optional AI chat. One monorepo — bot, API, and Next.js frontend.
 
-### 🎨 Web Dashboard
-- **3D Scrollytelling Landing Page** — Three.js with GSAP animations
-- **Discord OAuth2 Login** — Secure authentication
-- **Bot Controls** — Start/stop/restart from dashboard
-- **Embed Editor** — Live preview with Discord-style rendering
-- **Server Management** — Settings, custom commands, analytics
+## Features
 
-## 🛠️ Tech Stack
+| Area | Highlights |
+|------|------------|
+| **Bot** | `/good` / `/bad` deeds, karma levels, `/daily`, `/balance`, `/pay`, `/leaderboard`, trivia, RPS, guess, custom slash commands, moderation (warn/kick/ban), music queue |
+| **Dashboard** | Discord OAuth, start/stop/restart bot, server list &amp; settings, embed editor, commands &amp; analytics |
+| **Stack** | Next.js 16, Express, PostgreSQL (Prisma), Discord.js v14, WebSocket, Docker |
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | Next.js 14, React 19, TypeScript, Tailwind CSS, Three.js, GSAP |
-| **Backend** | Node.js, Express, TypeScript, WebSocket |
-| **Database** | PostgreSQL, Prisma ORM |
-| **Bot** | Discord.js v14 |
-| **Deployment** | Docker, Docker Compose, Vercel |
+## Quick Start
 
-## 📁 Project Structure
-
-```
-/clout
-├── apps/
-│   ├── web/          # Next.js frontend
-│   ├── api/          # Express backend
-│   └── bot/          # Discord bot
-├── packages/
-│   ├── database/     # Prisma schema & client
-│   └── shared/       # Types & constants
-├── docker-compose.yml
-└── README.md
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 20+
-- PostgreSQL
-- Discord Application (Bot + OAuth2)
-
-### 1. Clone & Install
+**Prerequisites:** Node.js 20+, PostgreSQL, [Discord Application](https://discord.com/developers/applications) (bot + OAuth2).
 
 ```bash
 git clone https://github.com/krishs05/clout.git
 cd clout
 npm install
-```
-
-### 2. Environment Setup
-
-Copy `.env.example` to `.env` in each app directory and fill in your values:
-
-**Root `.env`:**
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/clout?schema=public"
-DISCORD_CLIENT_ID=your_discord_client_id
-DISCORD_CLIENT_SECRET=your_discord_client_secret
-DISCORD_BOT_TOKEN=your_bot_token
-DISCORD_REDIRECT_URI=http://localhost:3000/auth/callback
-JWT_SECRET=your_random_secret
-```
-
-### 3. Database Setup
-
-```bash
+cp .env.example .env   # edit with your Discord credentials and JWT_SECRET
 npm run db:push
-```
-
-### 4. Run Development
-
-```bash
-# Run all apps
 npm run dev
-
-# Or individually
-cd apps/web && npm run dev    # http://localhost:3000
-cd apps/api && npm run dev    # http://localhost:3001
-cd apps/bot && npm run dev    # Bot process
 ```
 
-### 5. Deploy Bot Commands
+- **Web:** http://localhost:3000  
+- **API:** http://localhost:3001  
+- **Bot:** run `npm run deploy-commands` once from `apps/bot`, then the bot process stays up via `npm run dev`.
+
+## Docker
 
 ```bash
-cd apps/bot
-npm run deploy-commands
+cp .env.example .env   # fill in Discord + JWT_SECRET
+docker compose up -d --build
 ```
 
-## 🐳 Docker Deployment
+- **Web:** http://localhost:3000  
+- **API:** http://localhost:3001  
 
-```bash
-# Start everything
-docker-compose up -d
+See [DOCKER.md](DOCKER.md) for schema push, env vars, and port conflicts.
 
-# View logs
-docker-compose logs -f
+## Project layout
 
-# Stop
-docker-compose down
+```
+clout/
+├── apps/
+│   ├── web/       # Next.js (landing + dashboard)
+│   ├── api/       # Express + WebSocket
+│   └── bot/       # Discord.js bot
+├── packages/
+│   ├── database/  # Prisma schema & client
+│   └── shared/    # Types & constants
+├── resources/     # Logo and shared assets
+├── docker-compose.yml
+├── .env.example
+├── DOCKER.md
+└── AGENTS.md      # Dev guide for AI/contributors
 ```
 
-## ☁️ Vercel Deployment (Frontend)
+## Docs
 
-```bash
-cd apps/web
-vercel --prod
-```
+- **[AGENTS.md](AGENTS.md)** — Stack, structure, env, DB, commands, style.
+- **[DOCKER.md](DOCKER.md)** — Docker run, env, troubleshooting.
+- **[resources/](resources/)** — Logo and exportable assets.
 
-## 📝 Bot Commands
+## Bot commands (summary)
 
-| Command | Description |
-|---------|-------------|
-| `/good <deed>` | Record a good deed |
-| `/bad <deed>` | Record a bad deed |
-| `/profile [@user]` | View karma profile |
-| `/daily` | Claim daily reward (100 coins) |
-| `/balance [@user]` | Check coin balance |
-| `/pay @user <amount>` | Send coins |
-| `/leaderboard` | Top 10 richest users |
-| `/trivia` | Answer trivia for 50 coins |
-| `/rps <choice>` | Rock Paper Scissors |
-| `/guess <1-10>` | Guess the number |
-| `/command create/delete/list` | Manage custom commands |
-| `/help` | View all commands |
+`/good`, `/bad`, `/profile`, `/daily`, `/balance`, `/pay`, `/leaderboard`, `/trivia`, `/rps`, `/guess`, `/command create|delete|list`, `/help`, plus moderation and music.
 
-## 🔒 Environment Variables
+## License
 
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `DISCORD_CLIENT_ID` | Discord app client ID |
-| `DISCORD_CLIENT_SECRET` | Discord app client secret |
-| `DISCORD_BOT_TOKEN` | Discord bot token |
-| `DISCORD_REDIRECT_URI` | OAuth callback URL |
-| `JWT_SECRET` | Secret for JWT signing |
-| `OPENAI_API_KEY` | (Optional) For AI chat feature |
-| `YOUTUBE_API_KEY` | (Optional) For music feature |
+MIT.
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing`)
-5. Open a Pull Request
-
-## 📄 License
-
-MIT License — feel free to use for personal or commercial projects.
-
-## 🙏 Credits
-
-Built with:
-- [Discord.js](https://discord.js.org/)
-- [Next.js](https://nextjs.org/)
-- [Three.js](https://threejs.org/)
-- [Prisma](https://prisma.io/)
-- [Tailwind CSS](https://tailwindcss.com/)
-
----
-
-**Clout** — *Your karma, your currency.*
+<p align="center">
+  <img src="resources/logo.svg" width="32" alt="" /> Clout — <em>Your karma, your currency.</em>
+</p>

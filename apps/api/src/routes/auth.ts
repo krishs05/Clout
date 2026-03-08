@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import fetch from 'node-fetch';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
 import { generateToken } from '../middleware/auth';
@@ -26,7 +26,7 @@ router.get('/discord', (_req, res) => {
 });
 
 // OAuth2 callback (Discord redirects here with ?code=... or ?error=...)
-router.get('/callback', asyncHandler(async (req, res) => {
+router.get('/callback', asyncHandler(async (req: Request, res: Response) => {
   const { code, error: discordError, error_description: errorDescription } = req.query;
 
   if (discordError || typeof code !== 'string' || !code) {
@@ -130,7 +130,7 @@ router.get('/callback', asyncHandler(async (req, res) => {
 }));
 
 // Get current user
-router.get('/me', asyncHandler(async (req, res) => {
+router.get('/me', asyncHandler(async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
   
   if (!authHeader?.startsWith('Bearer ')) {

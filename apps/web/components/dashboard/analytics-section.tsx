@@ -165,14 +165,14 @@ export const AnalyticsSection = memo(function AnalyticsSection() {
                     innerRadius={60}
                     outerRadius={90}
                     paddingAngle={2}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                     labelLine={{ stroke: "rgba(255,255,255,0.2)" }}
                   >
                     {topCommandsData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
-                  <RechartsTooltip {...tooltipStyle} formatter={(value: number) => [value, "Uses"]} />
+                  <RechartsTooltip {...tooltipStyle} formatter={(value: number | undefined) => [value ?? 0, "Uses"]} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
