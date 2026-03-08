@@ -329,7 +329,6 @@ export function LogoIcon({
   ...props
 }: ComponentPropsWithoutRef<"svg">): JSX.Element {
   const gradientId = useId().replace(/:/g, "");
-  const filterId = useId().replace(/:/g, "");
 
   return (
     <svg
@@ -344,10 +343,6 @@ export function LogoIcon({
           <stop offset="0%" stopColor="#6366f1" />
           <stop offset="100%" stopColor="#8b5cf6" />
         </linearGradient>
-        <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="3" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
-        </filter>
       </defs>
       <ellipse
         cx="24"
@@ -356,7 +351,6 @@ export function LogoIcon({
         ry="2"
         fill="#8b5cf6"
         opacity="0.15"
-        filter={`url(#${filterId})`}
       />
       <path
         d="M12 34 L16 16 L24 24 L32 16 L36 34 Z"
@@ -365,7 +359,6 @@ export function LogoIcon({
         stroke={`url(#${gradientId})`}
         strokeWidth="2.5"
         strokeLinejoin="round"
-        filter={`url(#${filterId})`}
       />
       <path
         d="M16 34 L8 22 L16 26 Z"
